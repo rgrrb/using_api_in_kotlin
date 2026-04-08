@@ -78,7 +78,8 @@ fun CepScreen(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .background(color = Color.Blue)
                 .padding(top = 16.dp, bottom = 40.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -91,7 +92,8 @@ fun CepScreen(modifier: Modifier = Modifier) {
         }
 
         Card(
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .offset(y = (-30).dp)
         ) {
@@ -112,7 +114,33 @@ fun CepScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Qual CEP está buscando?") },
                     trailingIcon = {
-                        IconButton( onClick = { /* TODO */ } ) {
+                        IconButton(onClick = {
+
+                            var call: Call<Endereco>
+
+                            call =
+                                RetrofitFactory().getEnderecoService().getEnderecoByCep(
+                                    cep = cepState
+                                )
+                            call.enqueue(object : Callback<Endereco> {
+                                override fun onResponse(
+                                    p0: Call<Endereco>,
+                                    p1: Response<Endereco>
+                                ) {
+                                    Log.e("teste", p1.body()!!.toString())
+                                    listaEnderecos = listOf(p1.body()!!)
+                                }
+
+                                override fun onFailure(
+                                    call: Call<Endereco>,
+                                    t: Throwable
+                                ) {
+                                    Log.i("[RESPONSE]", "${t.message}")
+                                }
+                            })
+
+
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = ""
@@ -129,7 +157,7 @@ fun CepScreen(modifier: Modifier = Modifier) {
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 4.dp),
-                        label = { Text( text = "UF?" ) },
+                        label = { Text(text = "UF?") },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             capitalization = KeyboardCapitalization.Characters
@@ -142,7 +170,7 @@ fun CepScreen(modifier: Modifier = Modifier) {
                         value = cidadeState,
                         onValueChange = { cidadeState = it },
                         modifier = Modifier.weight(2f),
-                        label = { Text( text = "Qual a cidade?" ) },
+                        label = { Text(text = "Qual a cidade?") },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             capitalization = KeyboardCapitalization.Words
@@ -150,7 +178,7 @@ fun CepScreen(modifier: Modifier = Modifier) {
                     )
                 }
 
-                Row( verticalAlignment = Alignment.CenterVertically ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = ruaState,
                         onValueChange = { ruaState = it },
@@ -163,27 +191,21 @@ fun CepScreen(modifier: Modifier = Modifier) {
                     )
 
                     // uf cidade e rua
-                    IconButton( onClick = {
-                        val call: Call<List<Endereco>>
-                        if(cidadeState.length > 0) {
+                    IconButton(onClick = {
+                        var call: Call<List<Endereco>>
 
-                            call =
-                                RetrofitFactory().getEnderecoService().getEnderecoByUfCidadeRua(
-                                    uf = ufState,
-                                    cidade = cidadeState,
-                                    rua = ruaState
-                                )
-                        }else{
-                            call =
-                                RetrofitFactory().getEnderecoService().getEnderecoByCep(
-                                    cep = cepState
-                                )
-                        }
-                        call.enqueue(object: Callback<List<Endereco>> {
+                        call =
+                            RetrofitFactory().getEnderecoService().getEnderecoByUfCidadeRua(
+                                uf = ufState,
+                                cidade = cidadeState,
+                                rua = ruaState
+                            )
+                        call.enqueue(object : Callback<List<Endereco>> {
                             override fun onResponse(
                                 call: Call<List<Endereco>>,
                                 response: Response<List<Endereco>>
                             ) {
+                                Log.e("teste", response.body()!!.toString())
                                 listaEnderecos = response.body()!!
                             }
 
@@ -191,11 +213,12 @@ fun CepScreen(modifier: Modifier = Modifier) {
                                 call: Call<List<Endereco>>,
                                 t: Throwable
                             ) {
-                                Log.i("[RESPONSE]", "${ t.message }")
+                                Log.i("[RESPONSE]", "${t.message}")
                             }
                         })
 
-                    } ) {
+
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = ""
@@ -208,9 +231,11 @@ fun CepScreen(modifier: Modifier = Modifier) {
         LazyColumn(
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            items(listaEnderecos) {
-                CardEndereco(it)
-            }
+
+                items(listaEnderecos) {
+                    CardEndereco(it)
+                }
+
         }
     }
 }
@@ -218,11 +243,13 @@ fun CepScreen(modifier: Modifier = Modifier) {
 @Composable
 fun CardEndereco(endereco: Endereco) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(bottom = 4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(8.dp)
         ) {
             Text(text = endereco.cep)
