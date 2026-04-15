@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.example.consumoapi.model.Endereco
 import com.example.consumoapi.service.RetrofitFactory
 import com.example.consumoapi.ui.theme.ConsumoApiTheme
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -73,6 +75,8 @@ fun CepScreen(modifier: Modifier = Modifier) {
     var listaEnderecos by remember {
         mutableStateOf(listOf<Endereco>())
     }
+
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier.fillMaxWidth()
@@ -192,31 +196,17 @@ fun CepScreen(modifier: Modifier = Modifier) {
 
                     // uf cidade e rua
                     IconButton(onClick = {
-                        var call: Call<List<Endereco>>
-
-                        call =
-                            RetrofitFactory().getEnderecoService().getEnderecoByUfCidadeRua(
-                                uf = ufState,
-                                cidade = cidadeState,
-                                rua = ruaState
-                            )
-                        call.enqueue(object : Callback<List<Endereco>> {
-                            override fun onResponse(
-                                call: Call<List<Endereco>>,
-                                response: Response<List<Endereco>>
-                            ) {
-                                Log.e("teste", response.body()!!.toString())
-                                listaEnderecos = response.body()!!
+                        scope.launch {
+                            try {
+                                listaEnderecos = RetrofitFactory().getEnderecoService().getEnderecoByUfCidadeRua(
+                                    uf = ufState,
+                                    cidade = cidadeState,
+                                    rua = ruaState
+                                )
+                            } catch (r: Exception) {
+                                Log.e("error","teste")
                             }
-
-                            override fun onFailure(
-                                call: Call<List<Endereco>>,
-                                t: Throwable
-                            ) {
-                                Log.i("[RESPONSE]", "${t.message}")
-                            }
-                        })
-
+                        }
 
                     }) {
                         Icon(
